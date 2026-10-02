@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+psycopg://interviewer:interviewer_password@localhost:5432/ai_interviewer"
     OPENAI_API_KEY: str = ""
     OPENAI_BASE_URL: str = ""
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-1.5-flash"
+    AI_PROVIDER: str = "auto"
     ENABLE_FREE_FALLBACK: bool = True
     FRONTEND_URL: str = "http://localhost:3000"
     MAX_RESUME_SIZE_MB: int = 10
