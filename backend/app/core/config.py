@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     OPENAI_BASE_URL: str = ""
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-1.5-flash"
+    GEMINI_MODEL: str = "gemini-flash-latest"
     AI_PROVIDER: str = "auto"
     ENABLE_FREE_FALLBACK: bool = True
     FRONTEND_URL: str = "http://localhost:3000"

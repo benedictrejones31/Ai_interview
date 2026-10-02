@@ -26,49 +26,70 @@ class OpenAIService:
 
     @staticmethod
     async def call_gemini_generate(system_prompt: str, user_prompt: str) -> Dict[str, Any]:
-        """Direct, native Google Gemini REST API call with JSON Mode."""
+        """Direct, native Google Gemini REST API call returning clean parsed JSON."""
         api_key = settings.GEMINI_API_KEY.strip()
-        model = settings.GEMINI_MODEL or "gemini-1.5-flash"
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        primary_model = settings.GEMINI_MODEL or "gemini-flash-latest"
+        models_to_try = [primary_model]
+        if "gemini-flash-lite-latest" not in models_to_try:
+            models_to_try.append("gemini-flash-lite-latest")
+
+        combined_prompt = (
+            f"{system_prompt}\n\n"
+            f"IMPORTANT: You MUST respond ONLY with valid JSON. "
+            f"Do not include any text, markdown backticks, or preamble outside the JSON object.\n\n"
+            f"{user_prompt}"
+        )
 
         payload = {
-            "system_instruction": {
-                "parts": [{"text": system_prompt}]
-            },
             "contents": [
                 {
-                    "role": "user",
-                    "parts": [{"text": user_prompt}]
+                    "parts": [{"text": combined_prompt}]
                 }
             ],
             "generationConfig": {
-                "responseMimeType": "application/json",
                 "temperature": 0.2
             }
         }
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(url, json=payload)
-            if resp.status_code != 200:
-                logger.error(f"Google Gemini API error {resp.status_code}: {resp.text}")
-                raise HTTPException(
-                    status_code=resp.status_code,
-                    detail=f"Google Gemini API returned error: {resp.text}"
-                )
+        last_error = None
+        for model in models_to_try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+            try:
+                async with httpx.AsyncClient(timeout=35.0) as client:
+                    resp = await client.post(url, json=payload)
+                    if resp.status_code != 200:
+                        logger.warning(f"Google Gemini model {model} returned {resp.status_code}: {resp.text[:150]}")
+                        last_error = f"{resp.status_code}: {resp.text}"
+                        continue
 
-            data = resp.json()
-            candidates = data.get("candidates", [])
-            if not candidates:
-                raise HTTPException(status_code=502, detail="Google Gemini returned empty response candidates.")
+                    data = resp.json()
+                    candidates = data.get("candidates", [])
+                    if not candidates:
+                        last_error = "Empty response candidates from Gemini"
+                        continue
 
-            text_content = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "{}")
-            # Clean markdown codeblocks if Gemini wraps in ```json ... ```
-            cleaned = text_content.strip()
-            if cleaned.startswith("```"):
-                cleaned = re.sub(r"^```(?:json)?\n?", "", cleaned)
-                cleaned = re.sub(r"\n?```$", "", cleaned)
+                    text_content = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "{}")
+                    cleaned = text_content.strip()
+                    if cleaned.startswith("```"):
+                        cleaned = re.sub(r"^```(?:json)?\n?", "", cleaned)
+                        cleaned = re.sub(r"\n?```$", "", cleaned)
 
-            return json.loads(cleaned.strip())
+                    # Extract outer JSON object or array
+                    match = re.search(r"(\{.*\}|\[.*\])", cleaned, re.DOTALL)
+                    if match:
+                        cleaned = match.group(1)
+
+                    return json.loads(cleaned.strip())
+            except Exception as e:
+                logger.warning(f"Error querying Gemini model {model}: {e}")
+                last_error = str(e)
+                continue
+
+        logger.error(f"All Google Gemini models failed. Last error: {last_error}")
+        raise HTTPException(
+            status_code=502,
+            detail=f"Google Gemini API error: {last_error}"
+        )
 
     @staticmethod
     def get_openai_client() -> AsyncOpenAI:
