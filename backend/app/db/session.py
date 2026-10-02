@@ -1,3 +1,4 @@
+import os
 import logging
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -32,10 +33,19 @@ def get_engine():
             f"PostgreSQL connection to {db_url} failed: {e}. Falling back to SQLite for local session resilience."
         )
         # Fallback to local SQLite database so developer is never blocked if Docker is not running
-        fallback_url = "sqlite:///./interviewer.db"
-        return create_engine(fallback_url, connect_args={"check_same_thread": False})
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        db_path = os.path.abspath(os.path.join(base_dir, "interviewer.db"))
+        fallback_url = f"sqlite:///{db_path}"
+        fallback_engine = create_engine(fallback_url, connect_args={"check_same_thread": False})
+        return fallback_engine
 
 engine = get_engine()
+# Automatically ensure tables exist on engine initialization
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception:
+    pass
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():

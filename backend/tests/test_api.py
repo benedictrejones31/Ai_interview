@@ -98,3 +98,17 @@ def test_interview_lifecycle():
     assert admin_res.status_code == 200
     assert len(admin_res.json()) >= 1
 
+
+def test_valid_resume_upload_with_fallback():
+    with open("sample_resumes/alex_morgan_resume.pdf", "rb") as f:
+        file_bytes = f.read()
+
+    files = {"file": ("alex_morgan_resume.pdf", file_bytes, "application/pdf")}
+    response = client.post("/api/resumes/upload", files=files)
+    assert response.status_code == 200
+    data = response.json()
+    assert "candidate" in data
+    assert "interview_id" in data
+    assert len(data["questions"]) >= 10
+    assert data["candidate"]["name"] == "Alex Morgan"
+

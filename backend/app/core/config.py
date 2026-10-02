@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     DATABASE_URL: str = "postgresql+psycopg://interviewer:interviewer_password@localhost:5432/ai_interviewer"
     OPENAI_API_KEY: str = ""
+    OPENAI_BASE_URL: str = ""
+    ENABLE_FREE_FALLBACK: bool = True
     FRONTEND_URL: str = "http://localhost:3000"
     MAX_RESUME_SIZE_MB: int = 10
     OPENAI_TEXT_MODEL: str = "gpt-4o-mini"
