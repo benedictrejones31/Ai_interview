@@ -3,7 +3,7 @@
 import React from "react";
 
 interface VoiceVisualizerProps {
-  status: "connecting" | "speaking" | "listening" | "thinking" | "idle" | "error";
+  status: "connecting" | "speaking" | "listening" | "thinking" | "idle" | "error" | "completed";
   mode: "ai" | "user";
 }
 
