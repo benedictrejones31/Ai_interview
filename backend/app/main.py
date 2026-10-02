@@ -61,7 +61,9 @@ def health_check():
         "status": "healthy",
         "service": "ai-voice-interviewer",
         "environment": settings.APP_ENV,
-        "openai_configured": bool(settings.OPENAI_API_KEY)
+        "gemini_configured": bool(settings.GEMINI_API_KEY),
+        "openai_configured": bool(settings.OPENAI_API_KEY),
+        "ai_engine": "Google Gemini" if settings.GEMINI_API_KEY else ("OpenAI" if settings.OPENAI_API_KEY else "Offline Heuristic Engine")
     }
 
 # Include API Routers
