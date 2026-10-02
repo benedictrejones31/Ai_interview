@@ -63,8 +63,14 @@ class ReportGeneratorService:
             )
 
         # Calculate duration
-        start_time = interview.started_at or interview.created_at
-        end_time = interview.completed_at or datetime.now(timezone.utc)
+        start_time = interview.started_at or interview.created_at or datetime.now()
+        end_time = interview.completed_at or datetime.now()
+        # Ensure offset compatibility
+        if getattr(start_time, "tzinfo", None) is not None and getattr(end_time, "tzinfo", None) is None:
+            start_time = start_time.replace(tzinfo=None)
+        elif getattr(start_time, "tzinfo", None) is None and getattr(end_time, "tzinfo", None) is not None:
+            end_time = end_time.replace(tzinfo=None)
+
         duration_minutes = max(1.0, (end_time - start_time).total_seconds() / 60.0)
         interview_date_str = start_time.strftime("%B %d, %Y")
 
