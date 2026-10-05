@@ -54,6 +54,16 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": f"An internal server error occurred: {str(exc)}"}
     )
 
+# Root Endpoint
+@app.get("/", tags=["Root"])
+def root():
+    return {
+        "service": "AI Voice Interviewer API",
+        "status": "online",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
 # Health Check
 @app.get("/health", tags=["Health"])
 def health_check():

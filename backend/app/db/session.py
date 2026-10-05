@@ -1,3 +1,4 @@
+import os
 import logging
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -9,6 +10,11 @@ Base = declarative_base()
 
 def get_engine():
     db_url = settings.DATABASE_URL
+    # If on Render or production and db_url is default localhost, use SQLite directly without error
+    if ("localhost" in db_url or "127.0.0.1" in db_url) and (os.getenv("RENDER") or settings.APP_ENV == "production"):
+        logger.info("Using embedded SQLite database for deployment resilience.")
+        return create_engine("sqlite:///./interviewer.db", connect_args={"check_same_thread": False})
+
     try:
         # Check if database is PostgreSQL
         if "postgresql" in db_url:
