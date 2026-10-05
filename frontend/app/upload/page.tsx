@@ -92,7 +92,8 @@ export default function UploadPage() {
       if (err instanceof ApiError) {
         setErrorMsg(err.message);
       } else {
-        setErrorMsg("Failed to upload or analyze resume. Please verify the backend is running.");
+        const detail = err?.message ? ` (${err.message})` : "";
+        setErrorMsg(`Failed to connect to backend${detail}. If your Render backend is waking up, please wait 30 seconds and click analyze again.`);
       }
     } finally {
       setIsProcessing(false);
