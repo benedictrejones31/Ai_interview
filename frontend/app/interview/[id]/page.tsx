@@ -365,13 +365,15 @@ export default function InterviewRoomPage() {
 
   // Submit Answer to Backend (Google Gemini Scoring & Follow-up decision)
   const handleSubmitAnswer = async (textToSubmit?: string) => {
+    const isSkipped = textToSubmit === "[Candidate skipped this question]";
     const answer = (textToSubmit || currentTranscriptRef.current || candidateTranscript).trim();
     const q = activeQuestionRef.current || currentQuestion;
 
-    if (!q || !answer || isEvaluatingRef.current) return;
+    if (!q || (!answer && !isSkipped) || isEvaluatingRef.current) return;
 
     isEvaluatingRef.current = true;
     setIsEvaluating(true);
+    setErrorMsg(null);
     clearSilenceTimers();
     stopListening();
     setAgentStatus("thinking");
@@ -386,14 +388,14 @@ export default function InterviewRoomPage() {
         durationSeconds
       );
 
-      setEvaluationFeedback(response.evaluation.feedback);
+      setEvaluationFeedback(response.evaluation?.feedback || null);
       setTotalQuestions(response.total_questions || 10);
 
       // Check if interview completed
       if (response.is_interview_completed || !response.next_question) {
         setAgentStatus("completed");
         const completionMsg =
-          "Thank you for completing your interview. That concludes all 10 questions. I am now compiling your comprehensive performance report and sending a copy to HR.";
+          "Thank you for completing your interview. That concludes the assessment questions. I am now compiling your performance report and sending a copy to HR.";
         setAiTranscript(completionMsg);
 
         speakAIResponse(completionMsg, () => {
@@ -416,9 +418,30 @@ export default function InterviewRoomPage() {
         speakAIResponse(nextQ.question_text);
       }
     } catch (err: any) {
-      setErrorMsg("Failed to evaluate answer: " + (err.message || "Unknown error"));
-      setAgentStatus("listening");
-      startListening();
+      console.warn("Submit answer notice:", err);
+      if (isSkipped) {
+        // On skip, never show an error banner to candidate. Advance to next question immediately.
+        const questionsList = interview?.questions || [];
+        const nextQ = questionsList.find(
+          (item) => item.question_order > (q.question_order || currentIndex)
+        );
+        if (nextQ) {
+          setCurrentQuestion(nextQ);
+          activeQuestionRef.current = nextQ;
+          setCurrentIndex(nextQ.question_order);
+          setCandidateTranscript("");
+          accumulatedFinalTextRef.current = "";
+          currentTranscriptRef.current = "";
+          startTimeRef.current = Date.now();
+          speakAIResponse(nextQ.question_text);
+        } else {
+          handleCompleteInterview();
+        }
+      } else {
+        setErrorMsg("Failed to evaluate answer: " + (err.message || "Unknown error"));
+        setAgentStatus("listening");
+        startListening();
+      }
     } finally {
       isEvaluatingRef.current = false;
       setIsEvaluating(false);
@@ -431,6 +454,7 @@ export default function InterviewRoomPage() {
   // Skip Unknown Question Handler (Feature 2)
   const handleSkipQuestion = async () => {
     if (isEvaluatingRef.current) return;
+    setErrorMsg(null);
     clearSilenceTimers();
     stopListening();
     setCandidateTranscript("[Candidate skipped this question]");
@@ -451,6 +475,7 @@ export default function InterviewRoomPage() {
   // Complete Interview & Route to Report
   const handleCompleteInterview = async () => {
     try {
+      setErrorMsg(null);
       setAgentStatus("thinking");
       setIsLoading(true);
       stopListening();
@@ -461,8 +486,9 @@ export default function InterviewRoomPage() {
       await api.completeInterview(interviewId);
       router.push(`/report/${interviewId}`);
     } catch (err: any) {
-      setErrorMsg("Error finalizing report: " + (err.message || ""));
-      setIsLoading(false);
+      console.warn("Notice while completing interview:", err);
+      // Route cleanly to report page without showing an error barrier
+      router.push(`/report/${interviewId}`);
     }
   };
 

@@ -325,7 +325,17 @@ export default function ReportPage() {
           Question-by-Question Breakdown ({report.question_analyses.length} Questions)
         </h3>
 
-        <div className="space-y-4">
+        {report.question_analyses.length === 0 ? (
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-base font-bold text-slate-800 dark:text-slate-200">
+              No individual questions were answered during this session.
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+              The candidate concluded the interview early before submitting answers. An overall evaluation score of 0/100 has been recorded.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
           {report.question_analyses.map((qa, idx) => {
             const isExpanded = expandedQuestions[idx] ?? true;
             return (
@@ -416,6 +426,7 @@ export default function ReportPage() {
             );
           })}
         </div>
+        )}
       </div>
     </div>
   );

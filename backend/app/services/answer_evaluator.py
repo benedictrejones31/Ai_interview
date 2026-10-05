@@ -30,16 +30,36 @@ class AnswerEvaluatorService:
         skills = profile_json.get("skills", [])
         projects = profile_json.get("projects", [])
 
-        # 1. AI Evaluation
-        evaluation: AnswerEvaluation = await OpenAIService.evaluate_answer(
-            candidate_skills=skills,
-            candidate_projects=projects,
-            category=question.category,
-            question_text=question.question_text,
-            expected_topics=question.expected_topics_json or [],
-            skills_tested=question.skills_tested_json or [],
-            transcript=transcript
+        # 1. AI Evaluation (Bypass external API if candidate explicitly skipped the question)
+        is_skipped = (
+            "[Candidate skipped this question]" in transcript
+            or transcript.strip().lower() in ["skip", "skipped", "skip question", "skip this question", "[candidate skipped this question]"]
         )
+
+        if is_skipped:
+            evaluation = AnswerEvaluation(
+                score=0,
+                accuracy_score=0,
+                completeness_score=0,
+                depth_score=0,
+                communication_score=0,
+                strengths=[],
+                weaknesses=["Candidate chose to skip this question."],
+                missing_points=["No spoken response was provided."],
+                feedback="Question was skipped by candidate.",
+                needs_follow_up=False,
+                suggested_follow_up_question=None
+            )
+        else:
+            evaluation = await OpenAIService.evaluate_answer(
+                candidate_skills=skills,
+                candidate_projects=projects,
+                category=question.category,
+                question_text=question.question_text,
+                expected_topics=question.expected_topics_json or [],
+                skills_tested=question.skills_tested_json or [],
+                transcript=transcript
+            )
 
         # 2. Persist Answer
         answer = Answer(

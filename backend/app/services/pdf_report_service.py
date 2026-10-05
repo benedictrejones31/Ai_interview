@@ -52,7 +52,7 @@ class PDFReportService:
 
         # Score Badge on right
         score_rect = pymupdf.Rect(425, 115, 540, 175)
-        score_color = GREEN if overall_score >= 75 else (BRAND_BLUE if overall_score >= 60 else AMBER)
+        score_color = GREEN if overall_score >= 75 else (BRAND_BLUE if overall_score >= 60 else (AMBER if overall_score >= 40 else (220 / 255, 38 / 255, 38 / 255)))
         page.draw_rect(score_rect, color=score_color, fill=score_color, width=1)
         page.insert_text(pymupdf.Point(445, 142), "OVERALL SCORE", fontsize=8, fontname="helv", color=WHITE)
         page.insert_text(pymupdf.Point(452, 165), f"{overall_score}/100", fontsize=16, fontname="helv", color=WHITE)
@@ -137,6 +137,12 @@ class PDFReportService:
         page2.insert_text(pymupdf.Point(40, 32), f"Question-By-Question Breakdown: {candidate_name}", fontsize=14, fontname="helv", color=WHITE)
 
         q_analyses = report_data.get("question_analyses", [])
+        if not q_analyses:
+            empty_card = pymupdf.Rect(40, 75, 555, 140)
+            page2.draw_rect(empty_card, color=BORDER_GRAY, fill=LIGHT_BG, width=1)
+            page2.insert_text(pymupdf.Point(55, 100), "No individual question responses were recorded for this interview session.", fontsize=10, fontname="helv", color=NAVY)
+            page2.insert_text(pymupdf.Point(55, 120), "Candidate concluded the assessment early. Overall score recorded as 0/100.", fontsize=9, fontname="helv", color=DARK_GRAY)
+
         qy = 70
         for i, qa in enumerate(q_analyses[:10], start=1):
             if qy > 740:

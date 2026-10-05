@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from app.models.interview import Interview
 from app.models.question import Question
 from app.models.answer import Answer
-from app.schemas.report import FinalInterviewReport
+from app.schemas.report import FinalInterviewReport, CategoryScores
 from app.services.openai_service import OpenAIService
 
 logger = logging.getLogger(__name__)
@@ -56,12 +56,6 @@ class ReportGeneratorService:
                     "feedback": eval_data.get("feedback", "No feedback provided.")
                 })
 
-        if not qa_history:
-            raise HTTPException(
-                status_code=400,
-                detail="Cannot generate report: No answers have been submitted for this interview yet."
-            )
-
         # Calculate duration
         start_time = interview.started_at or interview.created_at or datetime.now()
         end_time = interview.completed_at or datetime.now()
@@ -71,8 +65,45 @@ class ReportGeneratorService:
         elif getattr(start_time, "tzinfo", None) is None and getattr(end_time, "tzinfo", None) is not None:
             end_time = end_time.replace(tzinfo=None)
 
-        duration_minutes = max(1.0, (end_time - start_time).total_seconds() / 60.0)
+        duration_minutes = max(0.5, round((end_time - start_time).total_seconds() / 60.0, 1))
         interview_date_str = start_time.strftime("%B %d, %Y")
+
+        if not qa_history:
+            # Candidate ended interview without answering any questions -> 0/100 score
+            zero_report = FinalInterviewReport(
+                candidate_name=candidate.name,
+                candidate_email=candidate.email,
+                interview_date=interview_date_str,
+                duration_minutes=duration_minutes,
+                total_questions_asked=len(questions),
+                overall_score=0,
+                category_scores=CategoryScores(
+                    technical_knowledge=0,
+                    project_understanding=0,
+                    problem_solving=0,
+                    communication_clarity=0,
+                    resume_understanding=0,
+                ),
+                strengths=["Candidate attended the scheduled assessment session."],
+                areas_for_improvement=[
+                    "No questions were answered during the interview session.",
+                    "Candidate concluded the interview before submitting responses."
+                ],
+                question_analyses=[],
+                final_summary="The interview was ended with 0 questions answered. An overall evaluation score of 0/100 has been recorded for this session.",
+                recommendation="Not Recommended (Assessment Incomplete)"
+            )
+
+            interview.final_report_json = zero_report.model_dump()
+            interview.overall_score = 0.0
+            interview.status = "completed"
+            if not interview.completed_at:
+                interview.completed_at = end_time
+
+            db.commit()
+            db.refresh(interview)
+            logger.info(f"Generated clean 0/100 report for interview {interview_id} ended without answers.")
+            return zero_report
 
         # Generate report via OpenAI
         report: FinalInterviewReport = await OpenAIService.generate_final_report(
