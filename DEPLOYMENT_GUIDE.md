@@ -27,40 +27,39 @@ Render PostgreSQL   Google Gemini API
 
 ---
 
-## STEP 1: Deploy Backend & Database on Render (Free)
+## STEP 1: Deploy Backend on Render (100% Free)
 
-1. Push your repository to **GitHub**:
-   ```bash
-   git add -A
-   git commit -m "feat: complete voice interview with resend email and video feed"
-   git push -u origin master
-   ```
+1. Open **[https://render.com](https://render.com)** and sign in with GitHub.
 
-2. Open [https://render.com](https://render.com) and sign in with GitHub.
+2. Click **New +** &rarr; select **Web Service**.
+   - Choose your repository: `https://github.com/benedictrejones31/Ai_interview.git` (or select `benedictrejones31/Ai_interview`).
 
-3. Click **New +** &rarr; **Blueprint** (or **Web Service**):
-   - Select your repository `https://github.com/benedictrejones31/Ai_interview.git`.
-   - Render will detect the included `render.yaml` automatically, creating:
-     - 1 Web Service (Python FastAPI Backend)
-     - 1 PostgreSQL Database (Free Tier)
+3. Configure Web Service settings:
+   - **Name**: `ai-voice-interviewer-backend`
+   - **Region**: Choose nearest (e.g. Frankfurt, Oregon, Singapore)
+   - **Branch**: `master`
+   - **Root Directory**: `backend` *(CRITICAL: Must set to `backend`!)*
+   - **Runtime**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - **Instance Type**: Select **Free ($0/month)**
 
-4. Configure the Environment Variables on Render:
+4. Add Environment Variables (click "Add Environment Variable" below):
    - `GEMINI_API_KEY`: Paste your Gemini API key (from Google AI Studio)
    - `GEMINI_MODEL`: `gemini-flash-latest`
    - `RESEND_API_KEY`: Paste your Resend API key (from https://resend.com/api-keys)
    - `RESEND_FROM`: `AI Voice Interviewer <onboarding@resend.dev>`
    - `HR_NOTIFICATION_EMAIL`: `benedictrejones3101@gmail.com`
-   - `FRONTEND_URL`: (Paste your Vercel URL here in Step 2)
-   - `DATABASE_URL`: Automatically linked from Render Postgres (or paste external Postgres URL)
+   - `FRONTEND_URL`: Leave blank for now (or set to your preliminary Vercel URL)
 
-5. Click **Apply / Deploy**. Once deployed, copy your backend URL:
-   `https://ai-voice-interviewer-backend.onrender.com`
+5. Click **Create Web Service**. Once deployed, copy your backend URL:
+   `https://ai-voice-interviewer-backend-xxxx.onrender.com`
 
 ---
 
-## STEP 2: Deploy Frontend on Vercel (Free & Instant)
+## STEP 2: Deploy Frontend on Vercel (100% Free)
 
-1. Open [https://vercel.com](https://vercel.com) and sign in with GitHub.
+1. Open **[https://vercel.com](https://vercel.com)** and sign in with GitHub.
 
 2. Click **Add New...** &rarr; **Project**.
    - Select your repository: `benedictrejones31/Ai_interview`.
@@ -72,24 +71,24 @@ Render PostgreSQL   Google Gemini API
    - **Output Directory**: `.next`
 
 4. Add Environment Variable:
-   - Name: `NEXT_PUBLIC_API_URL`
-   - Value: `https://ai-voice-interviewer-backend.onrender.com` *(your backend Render URL from Step 1)*
+   - **Key**: `NEXT_PUBLIC_API_URL`
+   - **Value**: `https://ai-voice-interviewer-backend-xxxx.onrender.com` *(your backend Render URL from Step 1, without trailing slash)*
 
 5. Click **Deploy**.
    - In ~60 seconds, your site is live at:
-     `https://ai-interview-preview.vercel.app`
+     `https://your-project.vercel.app`
 
 6. Return to Render and update `FRONTEND_URL` with your new Vercel address:
-   - `FRONTEND_URL`: `https://ai-interview-preview.vercel.app`
+   - `FRONTEND_URL`: `https://your-project.vercel.app`
 
 ---
 
-## STEP 3: Automated HR Report Delivery via Resend (Active)
+## STEP 3: Automated HR Report Delivery via Resend
 
-The application is pre-configured with **Resend** (https://resend.com):
+The application uses **Resend** (https://resend.com) to email the assessment PDF:
 - Every time an interview completes, the backend automatically generates a comprehensive PDF report and sends it to:
   `benedictrejones3101@gmail.com`
-- Configure `RESEND_API_KEY` in Render environment variables (or in your local `backend/.env`)
+- Configure `RESEND_API_KEY` in Render environment variables (or local `backend/.env`)
 - Sender: `AI Voice Interviewer <onboarding@resend.dev>`
 - The candidate report page also includes an **Email Report to HR** button for instant manual re-dispatch, plus a **Download PDF** button.
 
@@ -101,4 +100,4 @@ The application is pre-configured with **Resend** (https://resend.com):
 2. Grant Camera and Microphone access.
 3. Upload a sample resume.
 4. Complete the 10-question AI Voice interview with live camera feed.
-5. Review the comprehensive score report, download the PDF, and review the HR assessment.
+5. Review the comprehensive score report, download the PDF, and verify the email arrived in your inbox.

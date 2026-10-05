@@ -100,11 +100,7 @@ def test_interview_lifecycle():
 
 
 def test_valid_resume_upload_with_fallback():
-    from pathlib import Path
-    sample_path = Path(__file__).resolve().parent.parent.parent / "sample_resumes" / "alex_morgan_resume.pdf"
-    if not sample_path.exists():
-        sample_path = Path("sample_resumes/alex_morgan_resume.pdf")
-    with open(sample_path, "rb") as f:
+    with open("sample_resumes/alex_morgan_resume.pdf", "rb") as f:
         file_bytes = f.read()
 
     files = {"file": ("alex_morgan_resume.pdf", file_bytes, "application/pdf")}
