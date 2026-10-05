@@ -57,7 +57,7 @@ async def upload_resume(
     interview = Interview(
         candidate_id=candidate.id,
         status="pending",
-        total_questions=12,
+        total_questions=10,
         completed_questions=0
     )
     db.add(interview)
@@ -69,7 +69,7 @@ async def upload_resume(
         db=db,
         interview_id=interview.id,
         profile=profile,
-        target_count=12
+        target_count=10
     )
 
     # Update total questions to exact count generated

@@ -86,7 +86,7 @@ export default function AdminPage() {
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Interviews</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Interviews</span>
             <Users className="h-5 w-5 text-brand-500" />
           </div>
           <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white">
@@ -96,7 +96,7 @@ export default function AdminPage() {
 
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Completed Sessions</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Completed Sessions</span>
             <CheckCircle2 className="h-5 w-5 text-emerald-500" />
           </div>
           <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white">
@@ -106,7 +106,7 @@ export default function AdminPage() {
 
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Avg Technical Score</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Avg Technical Score</span>
             <Award className="h-5 w-5 text-brand-500" />
           </div>
           <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white">
@@ -124,7 +124,7 @@ export default function AdminPage() {
             placeholder="Search candidate name or file..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:border-brand-500 focus:outline-none"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm focus:border-brand-500 focus:outline-none"
           />
         </div>
       </div>
@@ -136,13 +136,13 @@ export default function AdminPage() {
             <Loader2 className="h-6 w-6 animate-spin text-brand-600" />
           </div>
         ) : filteredInterviews.length === 0 ? (
-          <div className="p-12 text-center text-sm text-slate-500">
+          <div className="p-12 text-center text-sm text-slate-500 dark:text-slate-400">
             No interview records found. Upload a resume to conduct your first voice interview.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
-              <thead className="border-b border-slate-200 bg-slate-50/80 text-xs font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
+            <table className="w-full text-left text-sm text-slate-700 dark:text-slate-300">
+              <thead className="border-b border-slate-200 bg-slate-50/90 text-xs font-bold uppercase tracking-wider text-slate-700 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300">
                 <tr>
                   <th className="px-6 py-4">Candidate</th>
                   <th className="px-6 py-4">Resume File</th>
@@ -158,7 +158,7 @@ export default function AdminPage() {
                     <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
                       {item.candidate_name}
                     </td>
-                    <td className="px-6 py-4 text-xs text-slate-500">
+                    <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400">
                       {item.resume_filename}
                     </td>
                     <td className="px-6 py-4">

@@ -17,6 +17,14 @@ class Settings(BaseSettings):
     OPENAI_TEXT_MODEL: str = "gpt-4o-mini"
     OPENAI_REALTIME_MODEL: str = "gpt-4o-realtime-preview-2024-12-17"
     OPENAI_VOICE: str = "alloy"
+    HR_NOTIFICATION_EMAIL: str = "benedictrejones3101@gmail.com"
+    RESEND_API_KEY: str = ""
+    RESEND_FROM: str = "AI Voice Interviewer <onboarding@resend.dev>"
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = "noreply@aiinterviewer.com"
 
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"),

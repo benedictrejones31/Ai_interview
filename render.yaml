@@ -1,0 +1,36 @@
+services:
+  # FastAPI Backend Service
+  - type: web
+    name: ai-voice-interviewer-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-flash-latest
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-interviewer-db
+          property: connectionString
+      - key: FRONTEND_URL
+        sync: false
+      - key: HR_NOTIFICATION_EMAIL
+        value: benedictrejones3101@gmail.com
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        value: AI Voice Interviewer <onboarding@resend.dev>
+      - key: MAX_RESUME_SIZE_MB
+        value: 10
+
+databases:
+  # Managed PostgreSQL Database
+  - name: ai-interviewer-db
+    databaseName: ai_interviewer
+    user: interviewer
+    plan: free

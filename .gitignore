@@ -22,10 +22,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-/lib/
-/lib64/
-!frontend/lib/
-*.tsbuildinfo
+lib/
+lib64/
 parts/
 sdist/
 var/
@@ -44,6 +42,7 @@ frontend/out/
 node_modules/
 .next/
 out/
+*.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -55,6 +54,8 @@ yarn-error.log*
 *.sqlite3
 uploads/
 backend/uploads/
+reports/
+backend/reports/
 postgres_data/
 
 # OS / Editor

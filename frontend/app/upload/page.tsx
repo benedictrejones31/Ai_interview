@@ -181,14 +181,14 @@ export default function UploadPage() {
                           {proj.title}
                         </div>
                         {proj.description && (
-                          <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                          <div className="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">
                             {proj.description}
                           </div>
                         )}
                         {proj.technologies && proj.technologies.length > 0 && (
                           <div className="mt-2 flex flex-wrap gap-1">
                             {proj.technologies.map((t, tidx) => (
-                              <span key={tidx} className="text-[10px] bg-slate-200/80 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-300">
+                              <span key={tidx} className="text-[10px] bg-slate-200/90 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-800 dark:text-slate-200">
                                 {t}
                               </span>
                             ))}
@@ -198,7 +198,7 @@ export default function UploadPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-400">No project details extracted.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">No project details extracted.</p>
                 )}
               </div>
 
@@ -212,15 +212,15 @@ export default function UploadPage() {
                   {candidate.profile.experience && candidate.profile.experience.length > 0 ? (
                     <div className="space-y-2">
                       {candidate.profile.experience.slice(0, 2).map((exp, idx) => (
-                        <div key={idx} className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800">
+                        <div key={idx} className="text-xs text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800">
                           <span className="font-semibold text-slate-900 dark:text-white">{exp.role || "Engineer"}</span>
                           {exp.company && <span> at {exp.company}</span>}
-                          {exp.duration && <span className="text-slate-400"> ({exp.duration})</span>}
+                          {exp.duration && <span className="text-slate-500 dark:text-slate-400"> ({exp.duration})</span>}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-400">No experience timeline stated.</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">No experience timeline stated.</p>
                   )}
                 </div>
 
@@ -230,16 +230,16 @@ export default function UploadPage() {
                     <span>Education</span>
                   </div>
                   {candidate.profile.education && candidate.profile.education.length > 0 ? (
-                    <div className="space-y-1 text-xs text-slate-600 dark:text-slate-300">
+                    <div className="space-y-1 text-xs text-slate-700 dark:text-slate-200">
                       {candidate.profile.education.map((edu, idx) => (
                         <div key={idx}>
                           {edu.degree} {edu.field_of_study && `- ${edu.field_of_study}`}
-                          {edu.institution && <span className="text-slate-400"> ({edu.institution})</span>}
+                          {edu.institution && <span className="text-slate-500 dark:text-slate-400"> ({edu.institution})</span>}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-400">No education entries extracted.</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">No education entries extracted.</p>
                   )}
                 </div>
               </div>
@@ -271,7 +271,7 @@ export default function UploadPage() {
             <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               Upload Your Resume
             </h1>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
               Upload your PDF resume. Our system will extract your background and generate a personalized mock interview.
             </p>
           </div>
@@ -308,16 +308,16 @@ export default function UploadPage() {
                 <UploadCloud className="h-8 w-8" />
               </div>
 
-              <div className="text-base font-semibold text-slate-800 dark:text-slate-200">
+              <div className="text-base font-semibold text-slate-900 dark:text-slate-100">
                 {selectedFile ? selectedFile.name : "Click to browse or drag and drop your resume"}
               </div>
 
-              <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-300">
                 Supports PDF format only (maximum file size 10 MB)
               </p>
 
               {selectedFile && (
-                <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-slate-100 dark:bg-slate-800 px-3.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300">
+                <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-slate-100 dark:bg-slate-800 px-3.5 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200">
                   <FileText className="h-3.5 w-3.5 text-brand-500" />
                   <span>{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</span>
                 </div>
@@ -337,7 +337,7 @@ export default function UploadPage() {
               <button
                 disabled={!selectedFile || isProcessing}
                 onClick={handleUploadAndProcess}
-                className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl bg-brand-600 py-3.5 text-sm font-semibold text-white shadow-md shadow-brand-500/20 transition-all hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl bg-brand-600 py-3.5 text-sm font-semibold text-white shadow-md shadow-brand-500/20 transition-all hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:border dark:disabled:border-slate-700"
               >
                 {isProcessing ? (
                   <>

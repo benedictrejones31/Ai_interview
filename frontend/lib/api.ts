@@ -129,5 +129,17 @@ export const api = {
   async getAdminInterviews(): Promise<AdminInterviewSummary[]> {
     return request("/api/admin/interviews");
   },
+
+  // 9. Download Report PDF URL
+  getReportPdfUrl(interviewId: string): string {
+    return `${API_BASE_URL}/api/interviews/${interviewId}/pdf`;
+  },
+
+  // 10. Send Report Email to HR
+  async sendReportEmail(interviewId: string): Promise<{ status: string; recipient: string; note?: string }> {
+    return request(`/api/interviews/${interviewId}/send-email`, {
+      method: "POST",
+    });
+  },
 };
 

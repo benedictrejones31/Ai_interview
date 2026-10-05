@@ -44,30 +44,30 @@ export default function HomePage() {
         </div>
 
         {/* Prerequisites Badge Row */}
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500 dark:text-slate-400">
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-slate-600 dark:text-slate-300 font-medium">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
             <span>PDF Resume Required (&le; 10MB)</span>
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-            <span>Microphone & Audio Output Required</span>
+            <span>Microphone & Camera Enabled</span>
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-            <span>15–20 Minutes Duration</span>
+            <span>10 Core Questions</span>
           </div>
         </div>
       </section>
 
       {/* How it Works / 4-Step Process Section */}
-      <section className="bg-slate-100/60 dark:bg-slate-900/40 py-20 border-y border-slate-200/80 dark:border-slate-800">
+      <section className="bg-slate-100/60 dark:bg-slate-900/60 py-20 border-y border-slate-200/80 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
               How The AI Voice Interview Works
             </h2>
-            <p className="mt-3 text-slate-600 dark:text-slate-400 text-sm sm:text-base">
+            <p className="mt-3 text-slate-600 dark:text-slate-300 text-sm sm:text-base">
               A seamless, natural simulation of an actual senior engineering hiring interview.
             </p>
           </div>
@@ -104,7 +104,7 @@ export default function HomePage() {
                   Tailored Questions
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                  AI analyzes your profile to craft 10–15 technical questions tailored directly to your projects, architectures, and listed stack.
+                  AI analyzes your profile to craft 10 foundational technical questions tailored directly to your projects, architectures, and listed stack.
                 </p>
               </div>
             </div>

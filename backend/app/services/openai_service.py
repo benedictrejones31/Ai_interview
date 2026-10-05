@@ -202,7 +202,7 @@ class OpenAIService:
     async def generate_interview_questions(
         cls,
         profile: CandidateProfile,
-        target_count: int = 12
+        target_count: int = 10
     ) -> List[QuestionItem]:
         """Generate tailored questions using Google Gemini, OpenAI, or free heuristic engine."""
         user_prompt = QUESTION_GENERATOR_USER_PROMPT.format(
@@ -224,21 +224,21 @@ class OpenAIService:
                     questions_raw = data
 
                 questions: List[QuestionItem] = []
-                for i, q in enumerate(questions_raw[:15], start=1):
+                for i, q in enumerate(questions_raw[:target_count], start=1):
                     questions.append(
                         QuestionItem(
                             order=i,
                             category=q.get("category", "technical_skills"),
                             question=q.get("question", ""),
                             skills_tested=q.get("skills_tested", []),
-                            difficulty=q.get("difficulty", "intermediate"),
+                            difficulty=q.get("difficulty", "basic"),
                             expected_topics=q.get("expected_topics", [])
                         )
                     )
                 if questions:
                     return questions
             except Exception as e:
-                logger.error(f"Gemini question generation error: {e}", exc_info=True)
+                logger.error(f"Gemini question generation notice: {e}", exc_info=True)
                 if settings.ENABLE_FREE_FALLBACK:
                     return cls._heuristic_generate_questions(profile, target_count)
                 raise
@@ -256,7 +256,7 @@ class OpenAIService:
                     {"role": "user", "content": user_prompt}
                 ],
                 response_format={"type": "json_object"},
-                temperature=0.4
+                temperature=0.3
             )
             raw_content = response.choices[0].message.content or "{}"
             data = json.loads(raw_content)
@@ -265,14 +265,14 @@ class OpenAIService:
                 questions_raw = data
 
             questions = []
-            for i, q in enumerate(questions_raw[:15], start=1):
+            for i, q in enumerate(questions_raw[:target_count], start=1):
                 questions.append(
                     QuestionItem(
                         order=i,
                         category=q.get("category", "technical_skills"),
                         question=q.get("question", ""),
                         skills_tested=q.get("skills_tested", []),
-                        difficulty=q.get("difficulty", "intermediate"),
+                        difficulty=q.get("difficulty", "basic"),
                         expected_topics=q.get("expected_topics", [])
                     )
                 )
@@ -287,19 +287,18 @@ class OpenAIService:
             raise HTTPException(status_code=502, detail=f"Question generation failed: {str(e)}")
 
     @classmethod
-    def _heuristic_generate_questions(cls, profile: CandidateProfile, target_count: int = 12) -> List[QuestionItem]:
-        """Free questions based on candidate resume data."""
+    def _heuristic_generate_questions(cls, profile: CandidateProfile, target_count: int = 10) -> List[QuestionItem]:
         skills = profile.skills or ["Python", "FastAPI", "Databases"]
         primary = skills[0] if len(skills) > 0 else "Python"
         secondary = skills[1] if len(skills) > 1 else "FastAPI"
         tertiary = skills[2] if len(skills) > 2 else "PostgreSQL"
-        project_title = profile.projects[0]["title"] if profile.projects else "Engineering Systems"
+        project_title = profile.projects[0]["title"] if profile.projects else "Web & Data Application"
 
         template_questions = [
             {
                 "order": 1,
                 "category": "introduction",
-                "question": f"Welcome {profile.name}! To get started, please tell me about yourself and an overview of your technical background.",
+                "question": f"Welcome {profile.name}! To get started, please tell me a bit about yourself and your technical background.",
                 "skills_tested": ["communication", "career_overview"],
                 "difficulty": "basic",
                 "expected_topics": ["background", "education", "key technical interests"]
@@ -307,90 +306,74 @@ class OpenAIService:
             {
                 "order": 2,
                 "category": "resume",
-                "question": f"Looking at your resume, what sparked your interest in working with {primary} and building modern software architectures?",
+                "question": f"Looking at your education and resume, what sparked your interest in technology and working with {primary}?",
                 "skills_tested": ["motivation", "foundations"],
                 "difficulty": "basic",
-                "expected_topics": ["career milestones", "engineering passion"]
+                "expected_topics": ["career milestones", "learning journey"]
             },
             {
                 "order": 3,
                 "category": "technical_skills",
-                "question": f"Can you explain how you use {primary} in production environments, and what best practices you follow for maintainability and testing?",
-                "skills_tested": [primary, "best_practices"],
-                "difficulty": "intermediate",
-                "expected_topics": ["architecture", "code quality", "error handling"]
+                "question": f"What are a few fundamental concepts in {primary} that you find most useful when building software?",
+                "skills_tested": [primary, "fundamentals"],
+                "difficulty": "basic",
+                "expected_topics": ["syntax", "functions", "core features"]
             },
             {
                 "order": 4,
                 "category": "technical_skills",
-                "question": f"You also listed experience with {secondary}. How do you handle concurrency, asynchronous execution, and performance optimization when using it?",
-                "skills_tested": [secondary, "performance"],
-                "difficulty": "intermediate",
-                "expected_topics": ["async/await", "throughput", "resource management"]
+                "question": f"You also listed experience with {secondary}. Can you give a simple example of how you have used it in a project?",
+                "skills_tested": [secondary, "practical_usage"],
+                "difficulty": "basic",
+                "expected_topics": ["framework basics", "routing", "usage"]
             },
             {
                 "order": 5,
                 "category": "projects",
-                "question": f"Could you walk me through your project '{project_title}'? What was the overall architecture and what specific role did you play?",
-                "skills_tested": ["system_design", "project_delivery"],
-                "difficulty": "intermediate",
-                "expected_topics": ["problem statement", "architecture", "trade-offs"]
+                "question": f"Could you describe your project '{project_title}'? In simple terms, what does it do and who is it built for?",
+                "skills_tested": ["project_overview", "clarity"],
+                "difficulty": "basic",
+                "expected_topics": ["problem statement", "user benefit", "features"]
             },
             {
                 "order": 6,
                 "category": "projects",
-                "question": f"What was the most challenging technical roadblock you encountered while developing '{project_title}', and how did you resolve it?",
-                "skills_tested": ["troubleshooting", "problem_solving"],
-                "difficulty": "advanced",
-                "expected_topics": ["debugging", "root cause analysis", "resilience"]
+                "question": f"What was your personal role in developing '{project_title}', and which specific features did you build yourself?",
+                "skills_tested": ["implementation", "ownership"],
+                "difficulty": "basic",
+                "expected_topics": ["contributions", "tools implemented"]
             },
             {
                 "order": 7,
                 "category": "experience",
-                "question": f"In your experience working with {tertiary}, how do you ensure data integrity, indexing efficiency, and schema versioning over time?",
-                "skills_tested": [tertiary, "data_modeling"],
-                "difficulty": "intermediate",
-                "expected_topics": ["database indexing", "migrations", "consistency"]
+                "question": f"When storing data using {tertiary}, what are the basic steps you take to structure tables and run queries?",
+                "skills_tested": [tertiary, "data_basics"],
+                "difficulty": "basic",
+                "expected_topics": ["tables", "queries", "data structure"]
             },
             {
                 "order": 8,
                 "category": "problem_solving",
-                "question": "Imagine an API endpoint you deployed experiences an unexpected 10x surge in traffic and latency spikes dramatically. What steps do you take to diagnose and remediate the bottleneck?",
-                "skills_tested": ["system_reliability", "incident_response"],
-                "difficulty": "advanced",
-                "expected_topics": ["metrics", "profiling", "caching", "rate limiting"]
+                "question": "When you encounter a bug or an unexpected error in your code, what are the first few steps you take to troubleshoot and resolve it?",
+                "skills_tested": ["debugging", "troubleshooting"],
+                "difficulty": "basic",
+                "expected_topics": ["error logs", "print/breakpoints", "isolation"]
             },
             {
                 "order": 9,
                 "category": "behavioral",
-                "question": "Can you describe a situation where you had a disagreement with a team member over a technical decision or design pattern? How did you reach alignment?",
-                "skills_tested": ["collaboration", "communication"],
-                "difficulty": "intermediate",
-                "expected_topics": ["constructive debate", "code reviews", "team empathy"]
+                "question": "Can you describe a time you worked on a team or group project? How did you communicate and coordinate with others?",
+                "skills_tested": ["teamwork", "communication"],
+                "difficulty": "basic",
+                "expected_topics": ["collaboration", "communication", "coordination"]
             },
             {
                 "order": 10,
                 "category": "behavioral",
-                "question": "How do you stay up-to-date with emerging tools, libraries, and frameworks, and how do you decide when to adopt a new technology in a production project?",
-                "skills_tested": ["continuous_learning", "technical_discernment"],
+                "question": "Looking forward, what kind of technical areas or new skills are you most excited to learn and work on next?",
+                "skills_tested": ["growth_mindset", "aspirations"],
                 "difficulty": "basic",
-                "expected_topics": ["evaluation criteria", "prototyping", "learning strategy"]
-            },
-            {
-                "order": 11,
-                "category": "technical_skills",
-                "question": f"How do you approach writing comprehensive automated tests for your services, and what metrics or principles do you prioritize?",
-                "skills_tested": ["testing", "CI/CD"],
-                "difficulty": "intermediate",
-                "expected_topics": ["unit tests", "integration tests", "mocking"]
-            },
-            {
-                "order": 12,
-                "category": "behavioral",
-                "question": "Looking forward, what kind of technical challenges or architectural areas are you most excited to tackle in your next role?",
-                "skills_tested": ["vision", "growth_mindset"],
-                "difficulty": "basic",
-                "expected_topics": ["career aspirations", "technical interests"]
+                "expected_topics": ["career goals", "curiosity"]
             }
         ]
         return [QuestionItem(**q) for q in template_questions[:target_count]]
@@ -410,6 +393,24 @@ class OpenAIService:
         transcript: str
     ) -> AnswerEvaluation:
         """Evaluate candidate answer using Google Gemini, OpenAI, or free engine."""
+        # 0. Check if candidate explicitly skipped this question
+        clean_tr = transcript.strip().lower()
+        if (
+            "[candidate skipped this question]" in clean_tr
+            or clean_tr in ["skip", "skipped", "skip question", "i don't know", "i do not know", "pass", "no idea"]
+        ):
+            return AnswerEvaluation(
+                score=0,
+                correctness=0,
+                relevance=0,
+                technical_depth=0,
+                clarity=0,
+                strengths=["Candidate acknowledged unfamiliarity and chose to move forward."],
+                missing_points=expected_topics if expected_topics else ["Question was skipped."],
+                feedback="This question was skipped by the candidate.",
+                needs_follow_up=False,
+                suggested_follow_up_question=None
+            )
         user_prompt = ANSWER_EVALUATION_USER_PROMPT.format(
             skills=", ".join(candidate_skills) if candidate_skills else "General",
             projects=json.dumps(candidate_projects, indent=2),

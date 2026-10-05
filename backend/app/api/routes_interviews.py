@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timezone
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -20,6 +20,8 @@ from app.schemas.answer import AnswerSubmitRequest, AnswerSubmitResponse
 from app.schemas.report import FinalInterviewReport
 from app.services.answer_evaluator import AnswerEvaluatorService
 from app.services.report_generator import ReportGeneratorService
+from app.services.pdf_report_service import PDFReportService
+from app.services.email_service import EmailService
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/interviews", tags=["Interviews"])
@@ -190,12 +192,25 @@ async def submit_answer(
 async def complete_interview(interview_id: str, db: Session = Depends(get_db)):
     """
     Synthesize all answered questions, compute scores, generate comprehensive report,
-    and persist in PostgreSQL.
+    persist in PostgreSQL, and automatically dispatch PDF report to HR email.
     """
     report = await ReportGeneratorService.generate_interview_report(
         db=db,
         interview_id=interview_id
     )
+
+    # Automatically generate PDF report and email to HR (benedictrejones3101@gmail.com)
+    try:
+        pdf_bytes = PDFReportService.generate_report_pdf(report.model_dump())
+        EmailService.send_interview_report(
+            candidate_name=report.candidate_name,
+            overall_score=report.overall_score,
+            recommendation=report.recommendation,
+            pdf_bytes=pdf_bytes
+        )
+    except Exception as e:
+        logger.warning(f"Notice during automatic report dispatch to HR: {e}")
+
     return report
 
 
@@ -210,4 +225,42 @@ def get_interview_report(interview_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Report has not been generated for this interview yet.")
 
     return FinalInterviewReport(**interview.final_report_json)
+
+
+@router.get("/{interview_id}/pdf")
+def download_interview_report_pdf(interview_id: str, db: Session = Depends(get_db)):
+    """Generate and download the official PDF assessment report."""
+    interview = db.query(Interview).filter(Interview.id == interview_id).first()
+    if not interview or not interview.final_report_json:
+        raise HTTPException(status_code=404, detail="Report has not been generated for this interview yet.")
+
+    candidate_name = interview.candidate.name if interview.candidate else "candidate"
+    safe_name = "".join(c for c in candidate_name if c.isalnum() or c in ('_', '-')).strip()
+    pdf_bytes = PDFReportService.generate_report_pdf(interview.final_report_json)
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={safe_name}_interview_report.pdf"
+        }
+    )
+
+
+@router.post("/{interview_id}/send-email")
+def send_report_email(interview_id: str, db: Session = Depends(get_db)):
+    """Manually send or re-send the interview report PDF to HR (benedictrejones3101@gmail.com)."""
+    interview = db.query(Interview).filter(Interview.id == interview_id).first()
+    if not interview or not interview.final_report_json:
+        raise HTTPException(status_code=404, detail="Report not generated yet.")
+
+    report_data = interview.final_report_json
+    pdf_bytes = PDFReportService.generate_report_pdf(report_data)
+    result = EmailService.send_interview_report(
+        candidate_name=report_data.get("candidate_name", "Candidate"),
+        overall_score=report_data.get("overall_score", 75),
+        recommendation=report_data.get("recommendation", "Review Recommended"),
+        pdf_bytes=pdf_bytes
+    )
+    return result
 

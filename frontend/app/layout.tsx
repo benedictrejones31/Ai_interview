@@ -14,8 +14,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="flex min-h-screen flex-col bg-slate-50 text-slate-900 selection:bg-brand-500 selection:text-white dark:bg-slate-950 dark:text-slate-100">
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const storedTheme = localStorage.getItem('theme');
+                if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="flex min-h-screen flex-col bg-slate-50 text-slate-900 selection:bg-brand-500 selection:text-white dark:bg-slate-950 dark:text-slate-100 transition-colors duration-150">
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
